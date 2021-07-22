@@ -1,0 +1,127 @@
+//######################################################################################
+//#Use case 1 - to view all the cars from Cars database
+
+use('Car_Rental');
+db.Cars.find()
+
+use('Car_Rental');
+db.Cars.aggregate(
+   [
+     { $sort : { _id : -1} }
+   ]
+)
+
+
+use('Car_Rental');
+db.Cars.find().count()
+
+//######################################################################################
+//#Use case 2 - insert new car to Cars database
+
+use('Car_Rental');
+db.Cars.insertOne(
+    {"Car_ID": 1501,
+    "PrivCust_ID": null,
+    "Category": "Sedan",
+    "Make": "Volkswagen",
+    "Model": "Passat Variant",
+    "Color": "Silver",
+    "Number": 3345,
+    "Seats": 5,
+    "Mileage": 22800,
+    "Fuel": "Diesel",
+    "Transmission": "Automatic",
+    "Year": 2018,
+    "Availability": 1,
+    "Status": "Running",
+    "City": "Munich",
+    "City_ID": 3,
+    "Latitude": 48.1372,
+    "Longitude": 11.5755,
+    "Country": "Germany"
+})
+
+
+use('Car_Rental');
+db.Cars.findOne({Car_ID: 1501})
+
+//#######################################################################################
+//#Use case 3 - to update car details in Cars collection
+use('Car_Rental');
+db.Cars.find({Car_ID: 1405})
+
+use('Car_Rental');
+db.Cars.updateOne({Car_ID: 1405},{$set: {Availability: 0, Mileage: 110000}})
+
+//#######################################################################################
+//#Use case 4 - to delete car from Cars collection
+use('Car_Rental');
+db.Cars.findOne({Car_ID: 1501})
+
+use('Car_Rental');
+db.Cars.remove({Car_ID: 1501})
+
+//#######################################################################################
+//#Use case 5 - Customers to view their preferred cars
+
+use('Car_Rental');
+db.Cars.aggregate([
+    {   //join Cars_Quote collection by matching 'Model' field as 'join1'
+        $lookup: 
+        {
+            from: 'Cars_Quote',
+            localField: 'Model',
+            foreignField: 'Model',
+            as: 'join1'
+        }
+    }, 
+    {   //find available(unreserved with good condition) cars and
+                // filter cars with customer's choice of city, transmission, etc
+        $match: 
+        {
+            "Status": "Running", 
+            "Availability": 1,
+            "City": "Stuttgart"
+            //"Color": "Black",
+            //"Seats": 5,
+            //"Transmission" : "Automatic"
+        }
+    },
+    {   
+        $project: 
+        {
+            //return required fields
+            _id: 0, Car_ID:1, Make: 1, Model: 1, Seats: 1, Transmission: 1, City: 1,
+             Category: 1, Color: 1, Fuel: 1, Year: 1,
+
+            //return cost of respective model and year of the car from joined collection(join1)    
+            EuroPerDay: 
+            {
+                $filter: 
+                {
+                    input: "$join1",
+                    as: "join2",
+                    cond: 
+                    {
+                        $eq: ["$$join2.Year", "$Year"]
+                    }
+                }
+            }
+        }
+    }, 
+    {   //deconstruct above array field for each element
+        $unwind: "$EuroPerDay"
+    }, 
+    {   //remove unwanted fields of join2
+        $unset: ["EuroPerDay._id", "EuroPerDay.Make", "EuroPerDay.Model", "EuroPerDay.Year"]
+
+    },
+    {   //sort the fields based on customers choice
+        $sort: {"EuroPerDay.Cost": 1}
+        //$sort: {"Seats": 1}
+    }
+
+    ]).pretty()
+	
+
+//#######################################################################################
