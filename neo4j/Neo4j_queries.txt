@@ -1,0 +1,41 @@
+Neo4j Query:
+
+#Load customer data into neo4j
+
+CALL apoc.load.json("file:///customers_json.json") yield value as cust
+MERGE(c:Customers {Customer_Id : cust.Customer_Id})
+SET c += cust
+
+#Load Car data into neo4j
+CALL apoc.load.json("file:///cars_json.json") yield value as car
+MERGE(ca:Cars {Car_Id : car.Car_ID})
+SET ca += car
+
+#Load Bookings data into neo4j
+
+CALL apoc.load.json("file:///bookings_json.json") yield value as book
+MERGE(c:Customers {Customer_Id : book.Customer_Id})
+MERGE(ca:Cars {Car_Id : book.Car_ID})
+MERGE(b:Bookings {Booking_Id : book.Booking_ID})
+SET b += book
+MERGE (c)-[:REQUESTS]->(b)
+MERGE (b)<-[:ALOTTED_TO]-(ca)
+
+#Query 1: View the data of the customer's who had committed the issue based on the car details provided from the 3rd party.
+
+match(c:Cars{Color:"Red"})-[:ALOTTED_TO]->(b:Bookings { Pick_Up_Location:"Berlin"})<-[:REQUESTS]-(cust:Customers)
+where b.Booking_Start_Date <= date("2019-02-15") and b.Booking_End_Date >=date("2019-02-15")
+RETURN c,b,cust
+
+#Query 2: Insert the customer(who had committed issue) detail to the customer table and establish a relationhip between customer and the complaints table.
+
+match(c:Cars{Color:"Red"})-[:ALOTTED_TO]->(b:Bookings { Pick_Up_Location:"Berlin"})<-[:REQUESTS]-(cust:Customers)
+where b.Booking_Start_Date <= date("2019-02-15") and b.Booking_End_Date >=date("2019-02-15")
+MERGE(comp:Complaints{Customer_ID : cust.Customer_Id,
+Full_Name : cust.Full_Name,
+Address:cust.Address,
+Country:cust.Country,
+Age:cust.Age,
+Gender:cust.Gender,
+Email:cust.Email,
+Phone:cust.Phone})-[:AGAINST]->(cust)
