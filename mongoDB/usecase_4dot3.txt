@@ -1,0 +1,150 @@
+// Query 1 - Update - Breakdown informed
+use('Car_Rental');
+
+db.Cars.update({Car_ID:1016},
+{
+    /**
+     * field: The field name
+     * expression: The expression.
+     */
+    $set: {
+      Status : "Breakdown",
+      City : "Leipzig",
+      Longitude : 56.89,
+      Latitude : 75.45
+    }
+})
+
+use('Car_Rental');
+db.Cars.find({Car_ID: 1016})
+
+// Checking the Result query 2 - Confirming the breakdown
+
+use('Car_Rental');
+db.Cars.find({Car_ID: 1016})
+
+use('Car_Rental');
+db.Cars.aggregate([
+      {  $lookup: {
+      from: 'Booking_Details',
+      localField: 'Car_ID',
+      foreignField: 'Car_ID',
+      as: 'checkSer'
+    }},
+    {
+        /**
+         * query: The query in MQL.
+         */
+        $match: {
+          Car_ID: {$in: [1016]}
+        }
+    }
+])
+
+use('Car_Rental');
+db.Booking_Details.find({Car_ID:1016})
+
+//use('Car_Rental');
+//db.Service_Center.find({SC_ID:20})
+
+
+// Query 3 - - Informed Service center to pick up car
+use("Car_Rental") 
+
+db.Service_Center.insertOne(
+  { SC_ID : 11, SC_Location : "Leipzig", Car_ID : 1016, SC_EmpID : 1111, SC_EmpName : "Kriston Cooper", Pickup_Latitude : 75.45, Pickup_Longitude : 56.89}
+);
+
+use('Car_Rental');
+db.Service_Center.find({SC_ID: 11, Car_ID:1016})
+
+// Query 4 :- Assign New Car
+
+use('Car_Rental');
+db.Cars.update({Car_ID:1016},
+{
+    /**
+     * field: The field name
+     * expression: The expression.
+     */
+    $set: {
+      Category : "Hatchback",
+      Make : "Opel",
+      Model : "Astra"
+    }
+})
+
+use('Car_Rental');
+db.Cars.find({Car_ID:1016})
+
+
+// Query 5 - customer feedback
+
+use('Car_Rental');
+db.Booking_Details.update({Booking_ID : 28},
+{
+    /**
+     * field: The field name
+     * expression: The expression.
+     */
+    $set: {
+      Customer_Feedback : "Car is not clean",
+    //  Make : "Dacia",
+    //  Model : "Duster"
+    }
+})
+
+use('Car_Rental');
+db.Booking_Details.find({Booking_ID : 28})
+
+
+// query 6 - select
+
+
+use('Car_Rental');
+db.Cars.aggregate([
+      {  $lookup: {
+      from: 'Booking_Details',
+      localField: 'Car_ID',
+      foreignField: 'Car_ID',
+      as: 'checkSer'
+    }},
+    {
+        /**
+         * query: The query in MQL.
+         */
+        $match: {
+          Car_ID: {$in: [1028]}
+        }
+    }
+])
+
+// Query 7 - update in cars availability 0 and status repair
+
+use('Car_Rental');
+db.Cars.update({Car_ID : 1028},
+{
+    /**
+     * field: The field name
+     * expression: The expression.
+     */
+    $set: {
+      Availability : 0,
+      Status : "Repair"
+    //  Make : "Dacia",
+    //  Model : "Duster"
+    }
+})
+
+use('Car_Rental');
+db.Cars.find({Car_ID : 1028})
+
+
+// query 8 - Pick up the car
+use('Car_Rental');
+db.Service_Center.insertOne(
+  { SC_ID : 5, SC_Location : "Dortmund", Car_ID : 1028, SC_EmpID : 551, SC_EmpName : "Nathan Matthews", Pickup_Latitude : 51.2311, Pickup_Longitude : 6.7724}
+);
+
+use('Car_Rental');
+db.Service_Center.find({SC_ID : 5, Car_ID : 1028})
