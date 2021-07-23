@@ -1,0 +1,116 @@
+First User Story:
+
+# For Reserving the cars for the premium Customers:
+
+use('Car_Rental')
+
+db.Booking_History.aggregate(
+[
+    {
+        /**
+         * query: The query in MQL.
+         */
+        $match: {
+          Customer_ID: {$in: [971]}
+        }
+    },
+
+    {
+        /**
+         * _id: The id of the group.
+         * fieldN: The first field name.
+         */
+        $group: {
+          _id: "$Customer_ID",
+          Reserve_Cars: {
+            $avg: "$Number_of_cars_booked"
+          }
+        }
+    },
+
+    {
+        /**
+         * newField: The new field name.
+         * expression: The new field expression.
+         */
+        $addFields: {
+          Reserve_Cars: { $round: ["$Reserve_Cars", 0]}            
+          }
+    }
+    
+]
+)
+
+db.Reserved_Cars.insertOne(
+    {
+        Customer_ID: 971,
+        Month: 'June',
+        Year: 2021,
+        Number_of_Cars_reserved: 5
+    }
+)
+
+
+
+Second User Story:
+
+# To generate Invoice for the premium customers:
+
+use('Car_Rental')
+
+db.Booking_History.aggregate(
+[
+    {
+        /**
+        * from: The target collection.
+        * localField: The local join field.
+        * foreignField: The target join field.
+        * as: The name for the results.
+        * pipeline: The pipeline to run on the joined collection.
+        * let: Optional variables to use in the pipeline field stages.
+        */
+        $lookup: {
+        from: 'Cars_Price_per_day',
+        localField: 'Car_Model',
+        foreignField: 'Car_Model',
+        as: 'joined'
+        }
+    },
+
+    { $unwind:"$joined" },
+
+    {
+        /**
+         * query: The query in MQL.
+         */
+        $match: {
+          Customer_ID: {$in: [994]},
+          Month: {$in: ['March']},
+          Year: {$in: [2021]}
+        }
+    },
+
+    {
+        /**
+         * newField: The new field name.
+         * expression: The new field expression.
+         */
+        $addFields: {
+          Bill: {
+              $multiply: ["$Number_of_cars_booked", "$joined.Quoted_Price"]
+          }
+        }
+    }
+    
+]
+)
+
+db.Customer_Invoice.insertOne(
+    {
+        Customer_ID: 994,
+        Month: "March",
+        Year: 2021,
+        Invoice: 150
+    }
+)
+
