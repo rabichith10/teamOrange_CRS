@@ -1,4 +1,4 @@
-For User Story1:
+For User Story1(booking the car):
 
 use("Car_Rental")
 
@@ -61,7 +61,7 @@ db.Booking_Details.aggregate([
 ])
 
 
-For user Story2:
+For user Story2(altering the booking date):
 
 
 //For updating the booking details with preferred time:
@@ -107,7 +107,7 @@ db.Booking_Details.aggregate([
 ])
 
 
-For User Story3:
+For User Story3(cancelling the booking date):
 
 //To check the booking details:
 use("Car_Rental")
@@ -165,7 +165,7 @@ db.Booking_Details.aggregate([
 ])
 
 
-For User Story4:
+For User Story4(car replacement because of car break down):
 
 
 //To update regarding car broke down:
