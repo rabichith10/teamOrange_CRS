@@ -1,0 +1,238 @@
+For User Story1:
+
+use("Car_Rental")
+
+//To check car availability:
+db.Cars.find({Availability:1,Status:"Running"})
+
+
+//To book the car as per user's preferred time:
+
+use("Car_Rental")
+db.Booking_Details.insertOne({Booking_ID:1001,Customer_Id:1001,Car_ID:1292,Booking_Payment:1,Booking_Date:new Date("2021-07-23"),Booking_Status:1,Pickup_Location:"Dortmund",Pickup_Latitude:51.5139,Pickup_Longitude:7.4653,Booking_Start_Date:new Date("2021-07-24"),Booking_End_Date
+:new Date("2021-07-31"),Booking_Cancellation_Date:null,Payment_Option:"Debit Card"})
+
+
+
+//To check the Booking Details:
+use("Car_Rental");
+db.Booking_Details.find({Booking_ID:1001})
+
+
+//To update that particular car will be unavailable as it's assigned now to Booking_ID:1001:
+
+use("Car_Rental")
+db.Cars.update({Car_ID:1292},
+{
+    /**
+     * field: The field name
+     * expression: The expression.
+     */
+    $set: {
+      Availability:0
+    }
+})
+
+
+//To check the car details:
+use("Car_Rental")
+db.Cars.find({Car_ID:1292})
+
+
+//Final Booking Result:
+
+use('Car_Rental');
+db.Booking_Details.aggregate([
+      {  $lookup: {
+      from: 'Cars',
+      localField: 'Car_ID',
+      foreignField: 'Car_ID',
+      as: 'checkSer'
+    }},
+    {
+        /**
+         * query: The query in MQL.
+         */
+        $match: {
+          Car_ID: {$in: [1292]},
+          Booking_ID: {$in: [1001]}
+        }
+    }
+])
+
+
+For user Story2:
+
+
+//For updating the booking details with preferred time:
+
+use("Car_Rental")
+db.Booking_Details.updateMany({Booking_ID:1001},
+{
+    /**
+     * field: The field name
+     * expression: The expression.
+     */
+    $set: {
+      //Booking_Start_Date:new Date("2021-07-23"),
+      Booking_End_Date:new Date("2021-08-10"),
+      Booking_Status:1
+
+    }
+})
+
+
+//To check the updated booking _Details:
+use("Car_Rental")
+db.Booking_Details.find({Booking_ID:1001})
+
+//Final result:
+use('Car_Rental');
+db.Booking_Details.aggregate([
+      {  $lookup: {
+      from: 'Cars',
+      localField: 'Car_ID',
+      foreignField: 'Car_ID',
+      as: 'checkSer'
+    }},
+    {
+        /**
+         * query: The query in MQL.
+         */
+        $match: {
+          Car_ID: {$in: [1292]},
+          Booking_ID:{$in: [1001]}
+        }
+    }
+])
+
+
+For User Story3:
+
+//To check the booking details:
+use("Car_Rental")
+db.Booking_Details.find({Booking_ID:1001})
+
+
+//To cancel the booking:
+use("Car_Rental")
+db.Booking_Details.updateMany({Booking_ID:1001},
+{
+    /**
+     * field: The field name
+     * expression: The expression.
+     */
+    $set: {
+      Booking_Cancellation_Date:new Date("2021-07-29"),
+      Booking_End_Date:new Date("2021-07-29")
+
+    }
+})
+
+
+//To update the car availability:
+db.Cars.updateOne({Car_ID:1292},
+{
+    /**
+     * field: The field name
+     * expression: The expression.
+     */
+    $set: {
+      Availability:1
+
+    }
+})
+
+
+//Final Booking Result:
+use('Car_Rental');
+db.Booking_Details.aggregate([
+      {  $lookup: {
+      from: 'Cars',
+      localField: 'Car_ID',
+      foreignField: 'Car_ID',
+      as: 'checkSer'
+    }},
+    {
+        /**
+         * query: The query in MQL.
+         */
+        $match: {
+          Car_ID: {$in: [1292]},
+          Booking_ID:{$in: [1001]}
+        }
+    }
+])
+
+
+For User Story4:
+
+
+//To update regarding car broke down:
+use("Car_Rental")
+db.Cars.updateMany({Car_ID:1292},
+{
+    /**
+     * field: The field name
+     * expression: The expression.
+     */
+    $set: {
+      Availability:0,
+      Status:"Breakdown"
+
+    }
+})
+
+//To check for other car availability:
+use("Car_Rental")
+db.Cars.find({Availability:1,Status:"Running"})
+
+//For assigning the new car:
+use("Car_Rental")
+db.Booking_Details.insertOne({Booking_ID:1002,Customer_Id:1001,Car_ID:1401,Booking_Payment:1,Booking_Date:new Date("2021-07-23"),Booking_Status:1,Pickup_Location:"Dortmund",Pickup_Latitude:51.5139,Pickup_Longitude:7.4653,Booking_Start_Date:new Date("2021-07-24"),Booking_End_Date
+:new Date("2021-07-31"),Booking_Cancellation_Date:null,Payment_Option:"Debit Card"})
+
+
+//To update the Cars details:
+use('Car_Rental');
+db.Cars.updateOne({Car_ID:1401},
+{
+    /**
+     * field: The field name
+     * expression: The expression.
+     */
+    $set: {
+      Availability:0
+
+    }
+})
+
+
+//To check the car details:
+use("Car_Rental")
+db.Cars.find({Car_ID:1401})
+
+//To check the booking details:
+use('Car_Rental')
+db.Booking_Details.find({Booking_ID:1002})
+
+
+//Final result:
+use('Car_Rental');
+db.Booking_Details.aggregate([
+      {  $lookup: {
+      from: 'Cars',
+      localField: 'Car_ID',
+      foreignField: 'Car_ID',
+      as: 'checkSer'
+    }},
+    {
+        /**
+         * query: The query in MQL.
+         */
+        $match: {
+          Car_ID: {$in: [1292,1401]},
+          Booking_ID: {$in: [1001,1002]}
+        }
+    }
+])
